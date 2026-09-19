@@ -11,33 +11,41 @@ class Linear:
 
     def forward(self, x):
         self.x = x
+        W = self.W
+        b = self.b
 
-        return np.dot(x, self.W) + self.b
+        return x @ W + b
 
     def backward(self, delta):
-        self.dW = np.dot(self.x.T, delta)
+        x = self.x
+        W = self.W
+
+        self.dW = x.T @ delta
         self.db = np.sum(delta, axis=0, keepdims=True)
 
-        next_delta = np.dot(delta, self.W.T)
-
-        return next_delta
+        return delta @ W.T
 
     def step(self, lr, beta1=0.9, beta2=0.999, eps=1e-8):
         self.t += 1
+        t = self.t
 
         self.m_W = beta1 * self.m_W + (1 - beta1) * self.dW
         self.m_b = beta1 * self.m_b + (1 - beta1) * self.db
 
-        self.v_W = beta2 * self.v_W + (1 - beta2) * (self.dW ** 2)
-        self.v_b = beta2 * self.v_b + (1 - beta2) * (self.db ** 2)
+        self.v_W = beta2 * self.v_W + (1 - beta2) * (self.dW * self.dW)
+        self.v_b = beta2 * self.v_b + (1 - beta2) * (self.db * self.db)
 
-        m_W_corrected = self.m_W / (1 - beta1 ** self.t)
-        m_b_corrected = self.m_b / (1 - beta1 ** self.t)
-        v_W_corrected = self.v_W / (1 - beta2 ** self.t)
-        v_b_corrected = self.v_b / (1 - beta2 ** self.t)
+        beta1_t = beta1 ** t
+        beta2_t = beta2 ** t
 
-        self.W -= lr * m_W_corrected / (np.sqrt(v_W_corrected) + eps)
-        self.b -= lr * m_b_corrected / (np.sqrt(v_b_corrected) + eps)
+        m_W = self.m_W / (1 - beta1_t)
+        m_b = self.m_b / (1 - beta1_t)
+
+        v_W = self.v_W / (1 - beta2_t)
+        v_b = self.v_b / (1 - beta2_t)
+
+        self.W -= lr * m_W / (np.sqrt(v_W) + eps)
+        self.b -= lr * m_b / (np.sqrt(v_b) + eps)
 
     def __call__(self, x):
         return self.forward(x)
@@ -49,7 +57,9 @@ class Sigmoid:
         return self.y_pred
 
     def backward(self, delta):
-        return delta * (self.y_pred * (1 - self.y_pred))
+        y_safe = np.clip(self.y_pred, 1e-15, 1 - 1e-15)
+
+        return delta * (y_safe * (1 - y_safe))
 
     def __call__(self, x):
         return self.forward(x)
@@ -77,7 +87,7 @@ class Sequential:
             if hasattr(layer, 'step'):
                 layer.step(lr)
 
-    def save_weights(self, filepath: str):
+    def save_weight(self, filepath: str):
         weight_dict = {}
         for idx, layer in enumerate(self.layers):
             if hasattr(layer, 'W'):
@@ -86,7 +96,7 @@ class Sequential:
 
         np.savez(filepath, **weight_dict)
 
-    def load_weights(self, filepath: str):
+    def load_weight(self, filepath: str):
         try:
             data = np.load(filepath)
             for idx, layer in enumerate(self.layers):
@@ -111,7 +121,7 @@ class ReLU:
         return np.maximum(0, x)
 
     def backward(self, delta):
-        return delta * (self.x > 0)
+        return np.where(self.x > 0 , delta, 0)
 
     def __call__(self, x):
         return self.forward(x)
