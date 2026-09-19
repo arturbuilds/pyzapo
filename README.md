@@ -12,12 +12,12 @@ It features an in-built adaptive **Adam optimizer** right inside the layers, mak
 * **Loss Functions:** `MSELoss` and binary cross-entropy (`BCELoss`) with clipping safety.
 * **Weights Management:** Save and load your trained models instantly with `.npz` binary files.
 
-## Installation 📦
+## Installation
 ```bash
 pip install pyzapo
 ```
 
-## Quick Start 💻
+## Quick Start
 ```python
 import numpy as np
 import pyzapo as pz
