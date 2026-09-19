@@ -77,7 +77,7 @@ class Sequential:
             if hasattr(layer, 'step'):
                 layer.step(lr)
 
-    def save_weight(self, filepath: str):
+    def save_weights(self, filepath: str):
         weight_dict = {}
         for idx, layer in enumerate(self.layers):
             if hasattr(layer, 'W'):
@@ -86,7 +86,7 @@ class Sequential:
 
         np.savez(filepath, **weight_dict)
 
-    def load_weight(self, filepath: str):
+    def load_weights(self, filepath: str):
         try:
             data = np.load(filepath)
             for idx, layer in enumerate(self.layers):
