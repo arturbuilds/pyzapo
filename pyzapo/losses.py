@@ -8,25 +8,25 @@ class MSELoss:
         return np.mean((y_pred - y_true) ** 2)
 
     def backward(self):
-        return self.y_pred - self.y_true
+        return 2 * (self.y_pred - self.y_true) / self.y_true.size
 
     def __call__(self, y_pred, y_true):
         return self.forward(y_pred, y_true)
 
 class BCELoss:
     def forward(self, y_pred, y_true):
-        y_pred = np.clip(y_pred, 1e-15, 1 - 1e-15)
-        loss = -np.mean(y_true * np.log(y_pred) + (1 - y_true) * np.log(1 - y_pred))
-
-        self.y_pred = y_pred
+        self.y_pred = np.clip(y_pred, 1e-15, 1 - 1e-15)
         self.y_true = y_true
 
-        return np.mean(loss)
+        loss = (y_true * np.log(self.y_pred) + (1 - y_true) * np.log(1 - self.y_pred))
+
+        return -np.mean(loss)
 
     def backward(self):
-        grad = (self.y_pred - self.y_true) / (self.y_pred * (1 - self.y_pred)) / len(self.y_true)
+        y_pred = self.y_pred
+        y_true = self.y_true
 
-        return grad
-
+        return (y_pred - y_true) / (y_pred * (1 - y_pred)) / y_true.shape[0]
+    
     def __call__(self, y_pred, y_true):
         return self.forward(y_pred, y_true)
