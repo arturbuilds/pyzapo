@@ -142,8 +142,8 @@ class Module:
         weights_dict = {}
         for name, attr in vars(self).items():
             if hasattr(attr, 'W'):
-                weights_dict[f'{name}_W'] = attr.W
-                weights_dict[f'{name}_b'] = attr.b
+                weights_dict[f"{name}_W"] = attr.W
+                weights_dict[f"{name}_b"] = attr.b
         np.savez(filepath, **weights_dict)
 
     def load_weights(self, filepath: str):
